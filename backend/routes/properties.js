@@ -3,6 +3,21 @@ const pool = require("../db"); // reuse the existing pool, don't make a new one
 
 const router = express.Router();
 
+// integer only and can be up to 20 digits long.
+const LISTING_ID_MAX_LENGTH = 20;
+const LISTING_ID_PATTERN = /^\d+$/;
+
+// takes a raw value from the URL and makes sure it is a valid listing id
+function parseListingId(raw) {
+  if (!LISTING_ID_PATTERN.test(raw)) {
+    return { error: "id must be a numeric listing id" };
+  }
+  if (raw.length > LISTING_ID_MAX_LENGTH) {
+    return { error: `id must be at most ${LISTING_ID_MAX_LENGTH} digits` };
+  }
+  return { value: raw };
+}
+
 // Takes a raw value from the URL and makes sure it is a plain whole number
 // return either an error message or the clean value
 
@@ -134,6 +149,75 @@ router.get("/", async (req, res) => {
     // Something went wrong talking to the database.
     console.error("GET /api/properties failed:", err);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Single property get by listing ID.
+router.get("/:id", async (req, res, next) => {
+  const parsed = parseListingId(req.params.id);
+  if (parsed.error) {
+    return res.status(400).json({ error: parsed.error });
+  }
+  const listingId = parsed.value;
+
+  try {
+    // SELECT * return the whole record.
+    // LIMIT 1  MySQL stop as soon as finds the row.
+    const [rows] = await pool.query(
+      "SELECT * FROM rets_property WHERE L_ListingID = ? LIMIT 1",
+      [listingId],
+    );
+
+    //  empty result 404
+    // something that does not exist
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ error: `No property found with listing id ${listingId}` });
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    // Hand database failures to the error middleware in server.js.
+    next(err);
+  }
+});
+
+
+// Open house events for one property.
+router.get("/:id/openhouses", async (req, res, next) => {
+  const parsed = parseListingId(req.params.id);
+  if (parsed.error) {
+    return res.status(400).json({ error: parsed.error });
+  }
+  const listingId = parsed.value;
+
+  try {
+    // check the property exists first.
+    const [propertyRows] = await pool.query(
+      "SELECT L_ListingID FROM rets_property WHERE L_ListingID = ? LIMIT 1",
+      [listingId],
+    );
+
+    if (propertyRows.length === 0) {
+      return res
+        .status(404)
+        .json({ error: `No property found with listing id ${listingId}` });
+    }
+
+    const [openHouses] = await pool.query(
+      `SELECT id, L_ListingID, OpenHouseDate, OH_StartTime, OH_EndTime, all_data
+         FROM rets_openhouse
+        WHERE L_ListingID = ?
+        ORDER BY OpenHouseDate, OH_StartTime`, // date first, then time within the day
+      [listingId],
+    );
+
+    // empty array is ok: the property exists, it just
+    // has nothing scheduled. That is not an error, so a 200.
+    res.json(openHouses);
+  } catch (err) {
+    next(err);
   }
 });
 
