@@ -1,0 +1,25 @@
+.grid {
+  display: grid;
+  /* KEY: auto-fill + minmax = responsive with zero media queries.
+     "Fit as many columns as you can, each at least 260px; share leftover space."
+     Wide screen -> more columns; narrow screen -> fewer, automatically. */
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.count {
+  margin: 0 0 16px;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.state {
+  padding: 40px;
+  text-align: center;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.state-error {
+  color: #b00020; /* red so a failure reads as a failure */
+}

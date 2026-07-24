@@ -134,12 +134,13 @@ router.get("/", async (req, res) => {
 
     // the actual page of results and sort by ID.
     const [results] = await pool.query(
-      `SELECT L_ListingID, L_City, L_Zip,
-              L_SystemPrice AS price, L_Keyword2 AS beds, LM_Dec_3 AS baths
-         FROM rets_property
-         ${whereClause}
-         ORDER BY L_ListingID          -- stable order so pagination is consistent
-         LIMIT ? OFFSET ?`,
+      `SELECT L_ListingID, L_Address, L_City, L_State, L_Zip,
+          L_SystemPrice AS price, L_Keyword2 AS beds, LM_Dec_3 AS baths,
+          LM_Int2_3 AS sqft, L_Photos
+     FROM rets_property
+     ${whereClause}
+     ORDER BY L_ListingID
+     LIMIT ? OFFSET ?`,
       [...values, limit, offset], // filter values FIRST, then limit/offset
     );
 
@@ -182,7 +183,6 @@ router.get("/:id", async (req, res, next) => {
     next(err);
   }
 });
-
 
 // Open house events for one property.
 router.get("/:id/openhouses", async (req, res, next) => {
