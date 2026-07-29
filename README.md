@@ -81,8 +81,10 @@ Returns a paginated, filterable list of properties.
 | `zipcode` | string | Exact match |
 | `minPrice` | integer >= 0 | Lower price bound |
 | `maxPrice` | integer >= 0 | Upper price bound |
-| `beds` | integer >= 0 | Minimum bedrooms |
-| `baths` | number >= 0 | Minimum bathrooms, decimals allowed |
+| `beds` | integer >= 0 | Exact bedroom count |
+| `baths` | number >= 0 | Exact bathroom count, decimals allowed |
+| `minBeds` | integer >= 0 | Minimum bedrooms, backs the UI's "5+" choice |
+| `minBaths` | number >= 0 | Minimum bathrooms, decimals allowed |
 
 Invalid values return `400` with a descriptive message.
 

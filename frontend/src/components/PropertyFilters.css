@@ -1,0 +1,33 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap; /* narrow screens: inputs wrap onto the next line */
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filters input,
+.filters select {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.filters button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.filters button[type="submit"] {
+  background: #2563eb;
+  color: #fff;
+}
+
+.filters button[type="button"] {
+  background: #eee;
+  color: #333;
+}

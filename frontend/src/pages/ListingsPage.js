@@ -1,66 +1,115 @@
 import { useEffect, useState } from "react";
 import { fetchProperties } from "../api/client";
+import { toQueryParams } from "../utils/filters";
+import PropertyFilters from "../components/PropertyFilters";
 import PropertyCard from "../components/PropertyCard";
 import "./ListingsPage.css";
 
 const PAGE_SIZE = 20;
 
+// Every field starts as "" 
+const EMPTY_FILTERS = {
+  city: "",
+  zipcode: "",
+  minPrice: "",
+  maxPrice: "",
+  beds: "",
+  baths: "",
+};
+
 function ListingsPage() {
+  // KEY: two separate pieces of filter state.
+  // draft   = what the user is currently typing (changes on every keystroke)
+  // applied = what is actually in effect (changes only on Search / Clear)
+  // Only `applied` is in the effect's dependency array
+  const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
 
   const [status, setStatus] = useState("loading"); // "loading" | "error" | "ready"
-  const [data, setData] = useState(null);          // { total, limit, offset, results }
+  const [data, setData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-
     setStatus("loading");
-    fetchProperties({ limit: PAGE_SIZE, offset: 0 })
+
+    // Empty fields are stripped never hit the API, and a "5+" bed/bath
+    // choice becomes the minBeds/minBaths param.
+    const params = {
+      ...toQueryParams(appliedFilters),
+      limit: PAGE_SIZE,
+      offset: 0,
+    };
+
+    fetchProperties(params)
       .then((payload) => {
-        if (cancelled) return;
+        if (cancelled) return; // a newer search has superseded this one
         setData(payload);
         setStatus("ready");
       })
       .catch((err) => {
         if (cancelled) return;
-        // err.message is the human-readable string our API client threw.
         setErrorMessage(err.message);
         setStatus("error");
       });
 
     return () => {
-      cancelled = true; // cleanup: runs if the component unmounts mid-request
+      cancelled = true;
     };
-  }, []); // empty deps -> run once when the page first mounts
+  }, [appliedFilters]); // re-fetch whenever the APPLIED filters change
 
-  // Requirement: loading state shows while fetching.
-  if (status === "loading") {
-    return <p className="state">Loading properties…</p>;
+  // Update one field of the draft. The spread keeps the other five untouched.
+  function handleFilterChange(name, value) {
+    setDraftFilters((previous) => ({ ...previous, [name]: value }));
   }
 
-  // error message shows if the backend is unreachable.
-  if (status === "error") {
-    return (
-      <p className="state state-error">
-        Could not load properties — {errorMessage}
-      </p>
-    );
+  // Promote the draft to applied -> the effect above re-runs and fetches.
+  function handleSearch() {
+    setAppliedFilters(draftFilters);
   }
 
-  // status === "ready"
+  // Reset BOTH: the form the user sees, and the filters in effect.
+  function handleClear() {
+    setDraftFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
+  }
+
   return (
     <section>
-      {/* Requirement: "Showing 20 of 487 properties" */}
-      <p className="count">
-        Showing {data.results.length} of {data.total} properties
-      </p>
+      <PropertyFilters
+        values={draftFilters}
+        onChange={handleFilterChange}
+        onSubmit={handleSearch}
+        onClear={handleClear}
+      />
 
-      <div className="grid">
-        {data.results.map((property) => (
-          // key must be stable + unique; the listing id is perfect for it
-          <PropertyCard key={property.L_ListingID} property={property} />
-        ))}
-      </div>
+      {status === "loading" && <p className="state">Loading properties…</p>}
+
+      {status === "error" && (
+        <p className="state state-error">
+          Could not load properties — {errorMessage}
+        </p>
+      )}
+
+      {/* a helpful message when nothing matches. */}
+      {status === "ready" && data.results.length === 0 && (
+        <p className="state">
+          No properties match your filters. Try widening your search.
+        </p>
+      )}
+
+      {status === "ready" && data.results.length > 0 && (
+        <>
+          <p className="count">
+            Showing {data.results.length} of {data.total} properties
+          </p>
+          <div className="grid">
+            {data.results.map((property) => (
+              <PropertyCard key={property.L_ListingID} property={property} />
+            ))}
+          </div>
+        </>
+      )}
     </section>
   );
 }

@@ -73,7 +73,8 @@ router.get("/", async (req, res) => {
   const values = [];
 
   // all the possible filters.
-  const { city, zipcode, minPrice, maxPrice, beds, baths } = req.query;
+  const { city, zipcode, minPrice, maxPrice, beds, baths, minBeds, minBaths } =
+    req.query;
 
   // City match
   if (city !== undefined) {
@@ -103,17 +104,33 @@ router.get("/", async (req, res) => {
     values.push(r.value);
   }
 
-  // Minimum number of bedrooms.
+  // Exact number of bedrooms: beds=3 means exactly 3, not 3-or-more.
   if (beds !== undefined) {
     const r = parseIntParam(beds, "beds", { min: 0 });
+    if (r.error) return res.status(400).json({ error: r.error });
+    conditions.push("L_Keyword2 = ?");
+    values.push(r.value);
+  }
+
+  // Exact number of bathrooms.
+  if (baths !== undefined) {
+    const r = parseNumberParam(baths, "baths", { min: 0 }); // decimal-friendly
+    if (r.error) return res.status(400).json({ error: r.error });
+    conditions.push("LM_Dec_3 = ?");
+    values.push(r.value);
+  }
+
+  // Open-ended lower bound, backing the UI's "5+" choice. Kept as its own
+  // param so `beds` can stay an unambiguous exact match.
+  if (minBeds !== undefined) {
+    const r = parseIntParam(minBeds, "minBeds", { min: 0 });
     if (r.error) return res.status(400).json({ error: r.error });
     conditions.push("L_Keyword2 >= ?");
     values.push(r.value);
   }
 
-  // Minimum number of bathrooms.
-  if (baths !== undefined) {
-    const r = parseNumberParam(baths, "baths", { min: 0 }); // decimal-friendly
+  if (minBaths !== undefined) {
+    const r = parseNumberParam(minBaths, "minBaths", { min: 0 });
     if (r.error) return res.status(400).json({ error: r.error });
     conditions.push("LM_Dec_3 >= ?");
     values.push(r.value);
