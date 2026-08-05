@@ -7,6 +7,22 @@
   gap: 18px;
 }
 
+/* The previous page stays on screen while the next one loads. Dimming it says
+   "this is on its way out" without collapsing the layout -- the pagination
+   control keeps its exact position, so the cursor stays over the button it
+   just clicked. */
+.results.is-refreshing {
+  opacity: 0.55;
+  transition: opacity 120ms ease-in;
+}
+
+/* Respect a user who has asked the OS for less motion/flicker. */
+@media (prefers-reduced-motion: reduce) {
+  .results.is-refreshing {
+    transition: none;
+  }
+}
+
 .count {
   margin: 0 0 16px;
   color: #555;

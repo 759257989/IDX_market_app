@@ -18,6 +18,18 @@ function parseListingId(raw) {
   return { value: raw };
 }
 
+// Express turns a repeated query param ("?city=a&city=b") into an ARRAY. Every
+// parser below assumes a single scalar, and an array that reaches mysql2 gets
+// expanded into a comma-separated list -- LOWER(TRIM('a', 'b')) -- which is a
+// SQL syntax error, i.e. a 500 for what is really bad input. Catch it up front
+// so the caller gets a 400 that names the offending param.
+function findRepeatedParam(query) {
+  for (const [name, value] of Object.entries(query)) {
+    if (Array.isArray(value)) return name;
+  }
+  return null;
+}
+
 // Takes a raw value from the URL and makes sure it is a plain whole number
 // return either an error message or the clean value
 
@@ -48,6 +60,14 @@ function parseNumberParam(raw, name, { min = null } = {}) {
 // handles GET requests for the list of properties. supports paging
 // (limit and offset) and optional filters
 router.get("/", async (req, res) => {
+  // Before anything else: one value per param, or we cannot trust the parsers.
+  const repeated = findRepeatedParam(req.query);
+  if (repeated) {
+    return res
+      .status(400)
+      .json({ error: `${repeated} must be provided at most once` });
+  }
+
   //defaults: show 20 results, start from the top.
   const { limit: rawLimit, offset: rawOffset } = req.query;
   let limit = 20;
