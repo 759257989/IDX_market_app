@@ -1,0 +1,28 @@
+.map { margin-top: 28px; }
+
+.map h2 { font-size: 1.1rem; margin: 0 0 10px; }
+
+.map iframe {
+  width: 100%;
+  height: 320px;
+  border: 0;
+  border-radius: 10px;
+}
+
+.map-directions {
+  display: inline-block;
+  margin-top: 10px;
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.map-directions:hover { text-decoration: underline; }
+
+.map-missing-key {
+  padding: 16px;
+  border: 1px dashed #ddd;
+  border-radius: 8px;
+  color: #777;
+  font-size: 0.9rem;
+}

@@ -17,10 +17,17 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
-.card-photo {
-  aspect-ratio: 4 / 3; /* every photo box is the same shape, so the grid stays tidy */
-  background: #f4f4f4;
+.card { cursor: pointer; }
+
+.card-address {
+  display: block;
+  margin: 0;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
 }
+
+.card-address:hover { text-decoration: underline; }
 
 .card-photo img {
   width: 100%;

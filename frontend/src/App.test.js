@@ -5,5 +5,5 @@ jest.mock("./pages/ListingsPage", () => () => <div>Listings</div>);
 
 test("renders the page heading", () => {
   render(<App />);
-  expect(screen.getByRole("heading", { name: /property listings/i })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /estateflow/i })).toBeInTheDocument();
 });

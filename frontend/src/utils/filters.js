@@ -1,3 +1,42 @@
+// Every field starts as "".
+export const EMPTY_FILTERS = {
+  city: "",
+  zipcode: "",
+  minPrice: "",
+  maxPrice: "",
+  beds: "",
+  baths: "",
+};
+
+// Filters live in the URL rather than in component state so they survive the
+// round trip to a property page and back -- ListingsPage unmounts on the way
+// out, which would otherwise take the whole search with it.
+export function filtersFromSearchParams(searchParams) {
+  const filters = { ...EMPTY_FILTERS };
+
+  for (const field of Object.keys(EMPTY_FILTERS)) {
+    const value = searchParams.get(field);
+    if (value !== null) filters[field] = value;
+  }
+
+  return filters;
+}
+
+export function pageFromSearchParams(searchParams) {
+  const page = Number(searchParams.get("page"));
+  // Guards a hand-edited "?page=abc" or "?page=-3" back to a sane first page.
+  return Number.isInteger(page) && page > 0 ? page : 1;
+}
+
+// The URL carries the form's own values (beds "5+" stays "5+"); the translation
+// to the API's minBeds/minBaths happens later, in toQueryParams.
+export function filtersToSearchParams(filters, page = 1) {
+  const params = new URLSearchParams(removeEmptyValues(filters));
+  // Page 1 is the default, so leaving it out keeps a plain search URL clean.
+  if (page > 1) params.set("page", String(page));
+  return params;
+}
+
 // drop any key whose value is empty, null, or undefined.
 export function removeEmptyValues(filters) {
   const cleaned = {};

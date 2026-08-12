@@ -1,0 +1,89 @@
+.open-houses { margin-top: 28px; }
+
+.open-houses h2 { font-size: 1.1rem; margin: 0 0 10px; }
+
+.open-houses ul { list-style: none; padding: 0; margin: 0; }
+
+.open-houses li {
+  padding: 12px 14px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.open-house-when { margin: 0; }
+
+.open-house-remarks {
+  margin: 6px 0 0;
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.open-houses-empty { color: #777; }
+
+.open-house-details {
+  margin-top: 10px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 8px;
+}
+
+.open-house-details summary {
+  cursor: pointer;
+  color: #444;
+  font-size: 0.85rem;
+  font-weight: 500;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+/* Replace the native marker with one that can be animated on toggle. */
+.open-house-details summary::-webkit-details-marker { display: none; }
+
+.open-house-details summary::before {
+  content: "›";
+  display: inline-block;
+  font-size: 1rem;
+  line-height: 1;
+  color: #999;
+  transition: transform 0.15s ease;
+}
+
+.open-house-details[open] summary::before { transform: rotate(90deg); }
+
+.open-house-details summary:hover { color: #111; }
+
+.open-house-details summary:focus-visible {
+  outline: 2px solid #767676;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.open-house-details dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 6px 24px;
+  margin: 10px 0 2px;
+}
+
+.open-house-details dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 0.875rem;
+}
+
+.open-house-details dt { color: #777; }
+
+.open-house-details dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  /* Livestream URLs have no spaces and would otherwise widen the row. */
+  overflow-wrap: anywhere;
+}

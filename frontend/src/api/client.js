@@ -39,3 +39,8 @@ export function fetchProperties(params = {}) {
 export function fetchPropertyDetail(id) {
   return request(`/properties/${encodeURIComponent(id)}`);
 }
+
+// GET /api/properties/:id/openhouses -- always an array, possibly empty.
+export function fetchOpenHouses(id) {
+  return request(`/properties/${encodeURIComponent(id)}/openhouses`);
+}

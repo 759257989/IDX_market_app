@@ -24,3 +24,22 @@ export function getFirstPhotoUrl(rawPhotos) {
 
   return first;
 }
+
+// Returns EVERY usable photo URL from a raw L_Photos value.
+export function getPhotoUrls(rawPhotos) {
+  // Covers a NULL column and the empty string stored on 381 rows.
+  if (!rawPhotos) return [];
+
+  let photos;
+  try {
+    photos = JSON.parse(rawPhotos);
+  } catch {
+    // Malformed or truncated JSON: one bad row must not break the page.
+    return [];
+  }
+
+  if (!Array.isArray(photos)) return [];
+
+  // filter, do not just return  only real URL strings survive.
+  return photos.filter((url) => typeof url === "string" && url.trim() !== "");
+}

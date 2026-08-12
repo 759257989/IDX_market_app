@@ -1,0 +1,115 @@
+.gallery-main {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: #f4f4f4;
+  position: relative;
+  cursor: zoom-in;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.gallery-main img {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-counter {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+/* The strip scrolls sideways instead of wrapping onto many rows. */
+.gallery-thumbs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 0 4px;
+}
+
+.gallery-thumbs button {
+  flex: 0 0 auto; /* do not let flex shrink the thumbnails */
+  width: 92px;
+  height: 68px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+}
+
+.gallery-thumbs button.is-active { border-color: #2563eb; }
+
+.gallery-thumbs img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0; /* shorthand for top/right/bottom/left: 0 */
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The div is focusable by script only; hide the focus ring it would show. */
+.lightbox:focus { outline: none; }
+
+.lightbox-image {
+  max-width: 92vw;
+  max-height: 88vh;
+  object-fit: contain; /* show the whole photo, never crop it here */
+}
+
+.lightbox-close,
+.lightbox-arrow {
+  position: absolute;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.lightbox-close {
+  top: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.lightbox-arrow {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.lightbox-arrow.prev { left: 18px; }
+.lightbox-arrow.next { right: 18px; }
+
+.lightbox-counter {
+  position: absolute;
+  bottom: 20px;
+  color: #fff;
+  font-size: 0.9rem;
+}

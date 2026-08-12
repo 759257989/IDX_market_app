@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { getFirstPhotoUrl } from "../utils/photos";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { getPhotoUrls } from "../utils/photos";
+import PropertyImageCarousel from "./PropertyImageCarousel";
 import "./PropertyCard.css";
 
 // Beds/baths/sqft can be NULL in the data. Show an em dash instead of "null"
@@ -21,42 +24,48 @@ function formatPrice(price) {
 }
 
 function PropertyCard({ property }) {
-  const photoUrl = getFirstPhotoUrl(property.L_Photos);
-
-  const [imageFailed, setImageFailed] = useState(false);
-  const showImage = photoUrl && !imageFailed;
-
+  const navigate = useNavigate();
+  const location = useLocation();
+  const photos = getPhotoUrls(property.L_Photos);
+  const detailPath = `/property/${property.L_ListingID}`;
   const cityState = [property.L_City, property.L_State].filter(Boolean).join(", ");
 
+  // Hand the detail page the exact search the user came from, so its back link
+  // can restore the filters and page instead of dumping them on an empty list.
+  const backState = { from: location.search };
+
   return (
-    <article className="card">
-      <div className="card-photo">
-        {showImage ? (
-          <img
-            src={photoUrl}
-            alt={property.L_Address || "Property photo"}
-            loading="lazy" // don't download off-screen images until scrolled to
-            onError={() => setImageFailed(true)}
-          />
-        ) : (
-          <div className="card-photo placeholder">No photo available</div>
-        )}
-      </div>
+    <article
+      className="card"
+      onClick={() => navigate(detailPath, { state: backState })}
+    >
+      <PropertyImageCarousel
+        photos={photos}
+        alt={property.L_Address || "Property photo"}
+      />
 
       <div className="card-body">
         <p className="card-price">{formatPrice(property.price)}</p>
-        <p className="card-address">{property.L_Address || "Address unavailable"}</p>
+        <Link
+          to={detailPath}
+          state={backState}
+          className="card-address"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {property.L_Address || "Address unavailable"}
+        </Link>
+
         <p className="card-location">{cityState}</p>
 
         <ul className="card-specs">
           <li><strong>{formatNumber(property.beds)}</strong> bd</li>
           <li><strong>{formatNumber(property.baths)}</strong> ba</li>
-          {/* sqft of 0 means "unknown" here, so treat 0 like null */}
           <li><strong>{property.sqft ? formatNumber(property.sqft) : "—"}</strong> sqft</li>
         </ul>
       </div>
     </article>
   );
+
 }
 
 export default PropertyCard;

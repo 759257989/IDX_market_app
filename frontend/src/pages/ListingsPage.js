@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { fetchProperties } from "../api/client";
-import { toQueryParams } from "../utils/filters";
+import {
+  EMPTY_FILTERS,
+  filtersFromSearchParams,
+  filtersToSearchParams,
+  pageFromSearchParams,
+  toQueryParams,
+} from "../utils/filters";
 import PropertyFilters from "../components/PropertyFilters";
 import PropertyCard from "../components/PropertyCard";
 import Pagination from "../components/Pagination";
@@ -8,41 +15,41 @@ import "./ListingsPage.css";
 
 const PAGE_SIZE = 20;
 
-// Every field starts as "" 
-const EMPTY_FILTERS = {
-  city: "",
-  zipcode: "",
-  minPrice: "",
-  maxPrice: "",
-  beds: "",
-  baths: "",
-};
-
 function ListingsPage() {
-  // draft   = what the user is currently typing (changes on every keystroke)
-  // applied = what is actually in effect (changes only on Search / Clear)
-  // Only `applied` is in the effect's dependency array
-  const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
-  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
+  // The applied search lives in the URL, not in state: returning from a
+  // property page remounts this component, and anything held in useState
+  // would come back empty. The URL survives that, plus reload and sharing.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const appliedFilters = filtersFromSearchParams(searchParams);
+  const currentPage = pageFromSearchParams(searchParams);
+
+  // draft = what the user is currently typing (changes on every keystroke).
+  // Seeded from the URL so the form shows the search that is actually running.
+  const [draftFilters, setDraftFilters] = useState(appliedFilters);
 
   const [status, setStatus] = useState("loading"); // "loading" | "error" | "ready"
   const [data, setData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+
+  // A string, not the searchParams object: that object is a new instance on
+  // every render, so depending on it directly would refetch forever.
+  const searchKey = searchParams.toString();
 
   useEffect(() => {
     let cancelled = false;
     setStatus("loading");
 
+    const params = new URLSearchParams(searchKey);
+
     // Empty fields are stripped never hit the API, and a "5+" bed/bath
     // choice becomes the minBeds/minBaths param.
-    const params = {
-      ...toQueryParams(appliedFilters),
+    const requestParams = {
+      ...toQueryParams(filtersFromSearchParams(params)),
       limit: PAGE_SIZE,
-      offset: (currentPage - 1) * PAGE_SIZE,
+      offset: (pageFromSearchParams(params) - 1) * PAGE_SIZE,
     };
 
-    fetchProperties(params)
+    fetchProperties(requestParams)
       .then((payload) => {
         if (cancelled) return; // a newer search has superseded this one
         setData(payload);
@@ -57,28 +64,26 @@ function ListingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [appliedFilters, currentPage]); // re-fetch on new filters OR a new page
+  }, [searchKey]); // re-fetch on new filters OR a new page
 
   // Update one field of the draft. The spread keeps the other five untouched.
   function handleFilterChange(name, value) {
     setDraftFilters((previous) => ({ ...previous, [name]: value }));
   }
 
-  // Promote the draft to applied -> the effect above re-runs and fetches.
+  // Promote the draft into the URL -> the effect above re-runs and fetches.
   function handleSearch() {
-    setAppliedFilters(draftFilters);
-    setCurrentPage(1);
+    setSearchParams(filtersToSearchParams(draftFilters, 1));
   }
 
   // Reset BOTH: the form the user sees, and the filters in effect.
   function handleClear() {
     setDraftFilters(EMPTY_FILTERS);
-    setAppliedFilters(EMPTY_FILTERS);
-    setCurrentPage(1);
+    setSearchParams(new URLSearchParams());
   }
 
   function handlePageChange(nextPage) {
-    setCurrentPage(nextPage);
+    setSearchParams(filtersToSearchParams(appliedFilters, nextPage));
     // jump back to the top so the new page starts at the first
     // card
     window.scrollTo(0, 0);

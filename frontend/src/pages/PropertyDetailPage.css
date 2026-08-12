@@ -1,0 +1,74 @@
+/* Neutral pill rather than a default blue link — it reads as navigation
+   without competing with the price and address for attention. */
+.detail-back {
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 7px 14px;
+  border: 1px solid #e4e4e4;
+  border-radius: 999px;
+  background: #fff;
+  color: #444;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.detail-back:hover {
+  background: #f5f5f5;
+  border-color: #c9c9c9;
+  color: #111;
+}
+
+.detail-back:focus-visible {
+  outline: 2px solid #767676;
+  outline-offset: 2px;
+}
+
+.detail-header { margin-top: 18px; }
+
+.detail-price { font-size: 1.9rem; font-weight: 700; margin: 0; }
+
+.detail-address { font-size: 1.15rem; margin: 4px 0 2px; font-weight: 600; }
+
+.detail-location { margin: 0; color: #666; }
+
+.detail-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  list-style: none;
+  padding: 16px 0;
+  margin: 16px 0 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+.detail-stats li { display: flex; flex-direction: column; }
+.detail-stats strong { font-size: 1.15rem; }
+.detail-stats span { color: #777; font-size: 0.85rem; }
+
+.detail-description { margin-top: 26px; }
+.detail-description h2,
+.detail-facts h2 { font-size: 1.1rem; margin: 0 0 10px; }
+.detail-description p { line-height: 1.65; color: #333; margin: 0; }
+
+.detail-facts { margin-top: 26px; }
+
+.detail-facts dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px 24px;
+  margin: 0;
+}
+
+.detail-facts dl > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.detail-facts dt { color: #777; }
+.detail-facts dd { margin: 0; font-weight: 600; }
