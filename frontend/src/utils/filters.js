@@ -8,6 +8,15 @@ export const EMPTY_FILTERS = {
   baths: "",
 };
 
+export const EMPTY_SORT = { sortBy: "", sortOrder: "" };
+
+export function sortFromSearchParams(searchParams) {
+  return {
+    sortBy: searchParams.get("sortBy") || "",
+    sortOrder: searchParams.get("sortOrder") || "",
+  };
+}
+
 // Filters live in the URL rather than in component state so they survive the
 // round trip to a property page and back -- ListingsPage unmounts on the way
 // out, which would otherwise take the whole search with it.
@@ -30,10 +39,15 @@ export function pageFromSearchParams(searchParams) {
 
 // The URL carries the form's own values (beds "5+" stays "5+"); the translation
 // to the API's minBeds/minBaths happens later, in toQueryParams.
-export function filtersToSearchParams(filters, page = 1) {
+export function filtersToSearchParams(filters, page = 1, sort = EMPTY_SORT) {
   const params = new URLSearchParams(removeEmptyValues(filters));
-  // Page 1 is the default, so leaving it out keeps a plain search URL clean.
   if (page > 1) params.set("page", String(page));
+
+  if (sort.sortBy) {
+    params.set("sortBy", sort.sortBy);
+    if (sort.sortOrder) params.set("sortOrder", sort.sortOrder);
+  }
+
   return params;
 }
 

@@ -3,19 +3,22 @@ function requestLogger(req, res, next) {
   
   const startedAt = process.hrtime.bigint();
   res.once("finish", () => {
-    const elapsedNs = process.hrtime.bigint() - startedAt;
-    const durationMs = Number(elapsedNs) / 1e6;
+  const durationMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
 
-    console.log(
-      [
-        new Date().toISOString(), // timestamp
-        req.method,               // GET, POST, ...
-        req.originalUrl,          // full path including the query string
-        res.statusCode,           // 200, 404, 400, 500
-        `${durationMs.toFixed(1)}ms`,
-      ].join(" ")
-    );
-  });
+  // Flag slow requests so they stand out in a wall of log lines. 500ms is a
+  // reasonable bar for a local API backed by an indexed table.
+  const slowMarker = durationMs > 500 ? "  SLOW" : "";
+
+  console.log(
+    [
+      new Date().toISOString(),
+      req.method,
+      req.originalUrl,
+      res.statusCode,
+      `${durationMs.toFixed(1)}ms`,
+    ].join(" ") + slowMarker
+  );
+});
 
   // Pass control down the chain.
   next();

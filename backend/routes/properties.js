@@ -7,6 +7,39 @@ const router = express.Router();
 const LISTING_ID_MAX_LENGTH = 20;
 const LISTING_ID_PATTERN = /^\d+$/;
 
+const SORTABLE_COLUMNS = {
+  price: "L_SystemPrice",
+  dateListed: "ListingContractDate",
+  sqft: "LM_Int2_3",
+  beds: "L_Keyword2",
+};
+
+const SORT_DIRECTIONS = { asc: "ASC", desc: "DESC" };
+
+function parseSort(rawSortBy, rawSortOrder) {
+  if (rawSortBy === undefined) {
+    if (rawSortOrder !== undefined) {
+      return { error: "sortOrder requires sortBy" };
+    }
+    return { column: null, direction: null };
+  }
+
+  const column = SORTABLE_COLUMNS[rawSortBy];
+  if (!column) {
+    return {
+      error: `sortBy must be one of: ${Object.keys(SORTABLE_COLUMNS).join(", ")}`,
+    };
+  }
+
+  // Default to ascending when only a field is given.
+  const direction = rawSortOrder === undefined ? "ASC" : SORT_DIRECTIONS[rawSortOrder];
+  if (!direction) {
+    return { error: "sortOrder must be asc or desc" };
+  }
+
+  return { column, direction };
+}
+
 // takes a raw value from the URL and makes sure it is a valid listing id
 function parseListingId(raw) {
   if (!LISTING_ID_PATTERN.test(raw)) {
@@ -161,6 +194,20 @@ router.get("/", async (req, res) => {
     ? `WHERE ${conditions.join(" AND ")}`
     : "";
 
+  // Sort is per-request, so it has to be built here rather than once at module
+  // load -- a shared orderByClause would hand every caller the same ordering.
+  const { sortBy: rawSortBy, sortOrder: rawSortOrder } = req.query;
+  const sort = parseSort(rawSortBy, rawSortOrder);
+  if (sort.error) return res.status(400).json({ error: sort.error });
+
+  // Interpolating straight into SQL is safe ONLY because both halves came back
+  // from the SORTABLE_COLUMNS/SORT_DIRECTIONS lookups -- a caller's raw string
+  // never reaches this line. The L_ListingID tiebreaker keeps paging stable:
+  // rows tied on the sort column would otherwise be free to swap between pages.
+  const orderByClause = sort.column
+    ? `ORDER BY ${sort.column} ${sort.direction}, L_ListingID`
+    : "ORDER BY L_ListingID";
+
   try {
     //  how many rows match,
     const [countRows] = await pool.query(
@@ -176,7 +223,7 @@ router.get("/", async (req, res) => {
           LM_Int2_3 AS sqft, L_Photos
      FROM rets_property
      ${whereClause}
-     ORDER BY L_ListingID
+     ${orderByClause}
      LIMIT ? OFFSET ?`,
       [...values, limit, offset], // filter values FIRST, then limit/offset
     );

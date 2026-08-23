@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fetchProperties } from "../api/client";
+
 import {
   EMPTY_FILTERS,
   filtersFromSearchParams,
   filtersToSearchParams,
   pageFromSearchParams,
+  removeEmptyValues,
+  sortFromSearchParams,
   toQueryParams,
 } from "../utils/filters";
 import PropertyFilters from "../components/PropertyFilters";
+import PropertySort from "../components/PropertySort";
 import PropertyCard from "../components/PropertyCard";
 import Pagination from "../components/Pagination";
 import "./ListingsPage.css";
@@ -22,6 +26,10 @@ function ListingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const appliedFilters = filtersFromSearchParams(searchParams);
   const currentPage = pageFromSearchParams(searchParams);
+  // Sort belongs in the URL for the same reason the filters do, and it is read
+  // straight back out rather than mirrored into state -- one source of truth
+  // means the dropdown can never disagree with the results underneath it.
+  const appliedSort = sortFromSearchParams(searchParams);
 
   // draft = what the user is currently typing (changes on every keystroke).
   // Seeded from the URL so the form shows the search that is actually running.
@@ -45,6 +53,9 @@ function ListingsPage() {
     // choice becomes the minBeds/minBaths param.
     const requestParams = {
       ...toQueryParams(filtersFromSearchParams(params)),
+      // An unsorted page must send no sort params at all: the API rejects a
+      // bare sortOrder, and an empty sortBy is not one of its allowed columns.
+      ...removeEmptyValues(sortFromSearchParams(params)),
       limit: PAGE_SIZE,
       offset: (pageFromSearchParams(params) - 1) * PAGE_SIZE,
     };
@@ -72,8 +83,16 @@ function ListingsPage() {
   }
 
   // Promote the draft into the URL -> the effect above re-runs and fetches.
+  // The sort rides along: it is a separate control from the form, so a new
+  // search should not silently snap the dropdown back to Default.
   function handleSearch() {
-    setSearchParams(filtersToSearchParams(draftFilters, 1));
+    setSearchParams(filtersToSearchParams(draftFilters, 1, appliedSort));
+  }
+
+  // A new sort reorders the whole result set, so page 11 of the old order is
+  // meaningless -- go back to page 1 rather than land the user mid-list.
+  function handleSortChange(nextSort) {
+    setSearchParams(filtersToSearchParams(appliedFilters, 1, nextSort));
   }
 
   // Reset BOTH: the form the user sees, and the filters in effect.
@@ -83,26 +102,17 @@ function ListingsPage() {
   }
 
   function handlePageChange(nextPage) {
-    setSearchParams(filtersToSearchParams(appliedFilters, nextPage));
+    setSearchParams(
+      filtersToSearchParams(appliedFilters, nextPage, appliedSort),
+    );
     // jump back to the top so the new page starts at the first
     // card
     window.scrollTo(0, 0);
   }
 
-  // Derived, not stored: recomputed from the latest response every render.
-  // KEY: these come from the RESPONSE (data.offset), not from currentPage.
-  // While a new page is in flight the rows on screen still belong to the
-  // previous response, so a label built from currentPage would advertise
-  // "221-240" above page 11's rows -- the very mismatch that made the original
-  // paging bug so confusing. Reading the offset back off the payload keeps the
-  // label and the rows structurally incapable of disagreeing.
   const totalPages = data ? Math.ceil(data.total / data.limit) : 0;
   const firstShown = data ? data.offset + 1 : 0;
   const lastShown = data ? data.offset + data.results.length : 0;
-
-  // What to show. Once we have results we keep them on screen through the next
-  // fetch: swapping a full page of cards for a "Loading…" line would yank the
-  // pagination control out from under the cursor that just clicked it.
   const showError = status === "error";
   const showFirstLoad = status === "loading" && !data;
   const showEmpty = !showError && data !== null && data.results.length === 0;
@@ -117,6 +127,10 @@ function ListingsPage() {
         onSubmit={handleSearch}
         onClear={handleClear}
       />
+
+      {/* Outside the form on purpose: picking a sort applies immediately,
+          it does not wait for the Search button like the filters do. */}
+      <PropertySort value={appliedSort} onChange={handleSortChange} />
 
       {/* Only on the very first load, when there is nothing to preserve. */}
       {showFirstLoad && <p className="state">Loading properties…</p>}

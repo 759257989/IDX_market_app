@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import ListingsPage from "./pages/ListingsPage";
 import PropertyDetailPage from "./pages/PropertyDetailPage";
+import ErrorBoundary from "./components/ErrorBoundary";
 import "./App.css";
 
 function App() {
@@ -24,11 +25,16 @@ function App() {
         </h1>
 
         {/* Routes picks the FIRST matching route and renders only that one. */}
-        <Routes>
-          <Route path="/" element={<ListingsPage />} />
-          <Route path="/property/:id" element={<PropertyDetailPage />} />
-          <Route path="*" element={<p className="state">Page not found.</p>} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<ListingsPage />} />
+            <Route path="/property/:id" element={<PropertyDetailPage />} />
+            <Route
+              path="*"
+              element={<p className="state">Page not found.</p>}
+            />
+          </Routes>
+        </ErrorBoundary>
       </main>
     </BrowserRouter>
   );
