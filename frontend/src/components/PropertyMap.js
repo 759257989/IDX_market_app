@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import "./PropertyMap.css";
 
 // Read once at module load. CRA replaces this at build time with the literal
@@ -57,5 +58,14 @@ function PropertyMap({ latitude, longitude, address }) {
     </section>
   );
 }
+
+PropertyMap.propTypes = {
+  // MySQL DECIMAL columns arrive as strings through mysql2, and 698 listings
+  // have no coordinates at all -- so these are optional and accept either type.
+  // The component narrows them with Number() before using them.
+  latitude: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  longitude: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  address: PropTypes.string,
+};
 
 export default PropertyMap;

@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import "./PropertyFilters.css";
 
 // Bedroom / bathroom choices. 1-4 are exact counts ("3" means exactly 3);
@@ -70,5 +71,24 @@ function PropertyFilters({ values, onChange, onSubmit, onClear }) {
     </form>
   );
 }
+
+PropertyFilters.propTypes = {
+  // Every field is required and must be a string -- these drive controlled
+  // inputs, and a value that goes undefined flips the input to uncontrolled,
+  // which React warns about at runtime.
+  values: PropTypes.shape({
+    city: PropTypes.string.isRequired,
+    zipcode: PropTypes.string.isRequired,
+    minPrice: PropTypes.string.isRequired,
+    maxPrice: PropTypes.string.isRequired,
+    beds: PropTypes.string.isRequired,
+    baths: PropTypes.string.isRequired,
+  }).isRequired,
+  // A missing handler leaves the control silently dead, so each one is
+  // required rather than defaulted to a no-op.
+  onChange: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  onClear: PropTypes.func.isRequired,
+};
 
 export default PropertyFilters;
