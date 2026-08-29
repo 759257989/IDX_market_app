@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import {
   getOpenHouseRemarks,
   getOpenHouseDetails,
@@ -55,5 +56,20 @@ function OpenHouseList({ openHouses }) {
     </section>
   );
 }
+
+OpenHouseList.propTypes = {
+  // Required array, but it may be empty: a listing with no scheduled open
+  // house is the normal case, not an error.
+  openHouses: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      OpenHouseDate: PropTypes.string.isRequired,
+      OH_StartTime: PropTypes.string,
+      OH_EndTime: PropTypes.string,
+      // A raw JSON string, parsed in the component -- not a parsed object.
+      all_data: PropTypes.string,
+    })
+  ).isRequired,
+};
 
 export default OpenHouseList;

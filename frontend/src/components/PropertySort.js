@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import "./PropertySort.css";
 
 const SORT_OPTIONS = [
@@ -30,5 +31,14 @@ function PropertySort({ value, onChange }) {
     </label>
   );
 }
+
+PropertySort.propTypes = {
+  // Both halves are always present as strings; "" means "no sort applied".
+  value: PropTypes.shape({
+    sortBy: PropTypes.string.isRequired,
+    sortOrder: PropTypes.string.isRequired,
+  }).isRequired,
+  onChange: PropTypes.func.isRequired,
+};
 
 export default PropertySort;

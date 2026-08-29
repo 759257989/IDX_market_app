@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { useState } from "react";
 import "./PropertyImageCarousel.css";
 
@@ -61,5 +62,12 @@ function PropertyImageCarousel({ photos, alt }) {
     </div>
   );
 }
+
+PropertyImageCarousel.propTypes = {
+  // Always an array -- getPhotoUrls returns [] rather than null when a listing
+  // has no usable photos, so the component never has to guard for undefined.
+  photos: PropTypes.arrayOf(PropTypes.string).isRequired,
+  alt: PropTypes.string.isRequired,
+};
 
 export default PropertyImageCarousel;
