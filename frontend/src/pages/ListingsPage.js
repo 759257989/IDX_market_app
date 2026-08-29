@@ -1,16 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { fetchProperties } from "../api/client";
 
 import {
   EMPTY_FILTERS,
   filtersFromSearchParams,
   filtersToSearchParams,
   pageFromSearchParams,
-  removeEmptyValues,
   sortFromSearchParams,
-  toQueryParams,
 } from "../utils/filters";
+import { useProperties } from "../hooks/useProperties";
 import PropertyFilters from "../components/PropertyFilters";
 import PropertySort from "../components/PropertySort";
 import PropertyCard from "../components/PropertyCard";
@@ -35,47 +33,12 @@ function ListingsPage() {
   // Seeded from the URL so the form shows the search that is actually running.
   const [draftFilters, setDraftFilters] = useState(appliedFilters);
 
-  const [status, setStatus] = useState("loading"); // "loading" | "error" | "ready"
-  const [data, setData] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-
   // A string, not the searchParams object: that object is a new instance on
   // every render, so depending on it directly would refetch forever.
   const searchKey = searchParams.toString();
 
-  useEffect(() => {
-    let cancelled = false;
-    setStatus("loading");
-
-    const params = new URLSearchParams(searchKey);
-
-    // Empty fields are stripped never hit the API, and a "5+" bed/bath
-    // choice becomes the minBeds/minBaths param.
-    const requestParams = {
-      ...toQueryParams(filtersFromSearchParams(params)),
-      // An unsorted page must send no sort params at all: the API rejects a
-      // bare sortOrder, and an empty sortBy is not one of its allowed columns.
-      ...removeEmptyValues(sortFromSearchParams(params)),
-      limit: PAGE_SIZE,
-      offset: (pageFromSearchParams(params) - 1) * PAGE_SIZE,
-    };
-
-    fetchProperties(requestParams)
-      .then((payload) => {
-        if (cancelled) return; // a newer search has superseded this one
-        setData(payload);
-        setStatus("ready");
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setErrorMessage(err.message);
-        setStatus("error");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [searchKey]); // re-fetch on new filters OR a new page
+  // Fetching lives in the hook; this page only reacts to what it returns.
+  const { status, data, errorMessage } = useProperties(searchKey, PAGE_SIZE);
 
   // Update one field of the draft. The spread keeps the other five untouched.
   function handleFilterChange(name, value) {

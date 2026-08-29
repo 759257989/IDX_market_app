@@ -1,8 +1,21 @@
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import ListingsPage from "./ListingsPage";
 import { fetchProperties } from "../api/client";
 
 jest.mock("../api/client");
+
+// The page keeps its filters, sort and page number in the URL, so it needs a
+// router in context -- useSearchParams throws outside one. MemoryRouter keeps
+// that history in memory, which is what a test wants: no jsdom URL to reset
+// between cases, and each render starts from a clean "/".
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <ListingsPage />
+    </MemoryRouter>
+  );
+}
 
 const TOTAL = 2748;
 
@@ -32,7 +45,7 @@ beforeEach(() => {
 });
 
 test("clicking Next requests the next page from the API", async () => {
-  render(<ListingsPage />);
+  renderPage();
   await screen.findByText(/Showing 1-20 of 2748 properties/);
 
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
@@ -45,7 +58,7 @@ test("clicking Next requests the next page from the API", async () => {
 });
 
 test("page 2 renders different listings than page 1", async () => {
-  render(<ListingsPage />);
+  renderPage();
   await screen.findByText(/Showing 1-20 of 2748 properties/);
   expect(screen.getByText("0 Test St")).toBeInTheDocument();
 
@@ -57,7 +70,7 @@ test("page 2 renders different listings than page 1", async () => {
 });
 
 test("jumping to a far page requests the matching offset", async () => {
-  render(<ListingsPage />);
+  renderPage();
   await screen.findByText(/Showing 1-20 of 2748 properties/);
 
   // Page 12 is what the reported bug used: "Showing 221-240 of 2748".
@@ -90,7 +103,7 @@ const payloadFor = (offset) => ({
 
 describe("while the next page is loading", () => {
   test("the current results and the pager stay on screen", async () => {
-    render(<ListingsPage />);
+    renderPage();
     await screen.findByText(/Showing 1-20 of 2748 properties/);
 
     const pending = deferred();
@@ -108,7 +121,7 @@ describe("while the next page is loading", () => {
   });
 
   test("the count keeps describing the rows actually visible", async () => {
-    render(<ListingsPage />);
+    renderPage();
     await screen.findByText(/Showing 1-20 of 2748 properties/);
 
     const pending = deferred();
@@ -126,7 +139,7 @@ describe("while the next page is loading", () => {
   });
 
   test("the region is marked busy for assistive tech", async () => {
-    render(<ListingsPage />);
+    renderPage();
     await screen.findByText(/Showing 1-20 of 2748 properties/);
 
     const pending = deferred();
@@ -149,7 +162,7 @@ test("the very first load shows the loading message", async () => {
   const pending = deferred();
   fetchProperties.mockReturnValueOnce(pending.promise);
 
-  render(<ListingsPage />);
+  renderPage();
 
   // Nothing to preserve yet, so the placeholder is correct here.
   expect(screen.getByText(/Loading properties/)).toBeInTheDocument();
@@ -160,7 +173,7 @@ test("the very first load shows the loading message", async () => {
 });
 
 test("applying a filter resets back to page 1 (offset 0)", async () => {
-  render(<ListingsPage />);
+  renderPage();
   await screen.findByText(/Showing 1-20 of 2748 properties/);
 
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
