@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { useState, useEffect, useRef } from "react";
 import "./PropertyImageGallery.css";
 
@@ -110,5 +111,10 @@ function PropertyImageGallery({ photos, alt }) {
     </div>
   );
 }
+
+PropertyImageGallery.propTypes = {
+  photos: PropTypes.arrayOf(PropTypes.string).isRequired,
+  alt: PropTypes.string.isRequired,
+};
 
 export default PropertyImageGallery;
