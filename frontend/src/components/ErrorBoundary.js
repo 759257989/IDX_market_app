@@ -5,14 +5,12 @@ class ErrorBoundary extends Component {
     this.state = { hasError: false };
   }
 
-  // Called during rendering when a child throws. Returns the new state, so
-  // the next render shows the fallback UI instead of the broken tree.
+  // Called during rendering when a child throws. Returns the new state
   static getDerivedStateFromError() {
     return { hasError: true };
   }
 
-  // Called after the error is caught. This is the side-effect phase -- log
-  // here, or report to a monitoring service.
+  // Called after the error is caught. 
   componentDidCatch(error, info) {
     console.error("Render error caught by boundary:", error, info.componentStack);
   }
