@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { getFirstPhotoUrl } from "../utils/photos";
+import PropTypes from "prop-types";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { getPhotoUrls } from "../utils/photos";
 import PropertyImageCarousel from "./PropertyImageCarousel";
@@ -67,5 +66,23 @@ function PropertyCard({ property }) {
   );
 
 }
+
+PropertyCard.propTypes = {
+  property: PropTypes.shape({
+    L_ListingID: PropTypes.string.isRequired,
+
+    // Everything below is optional
+    L_Address: PropTypes.string,
+    L_City: PropTypes.string,
+    L_State: PropTypes.string,
+    L_Photos: PropTypes.string,
+
+    // Numbers as MySQL returns them. baths is DECIMAL(4,1)
+    price: PropTypes.number,
+    beds: PropTypes.number,
+    baths: PropTypes.number,
+    sqft: PropTypes.number,
+  }).isRequired,
+};
 
 export default PropertyCard;
