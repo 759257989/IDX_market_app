@@ -5,10 +5,6 @@ It serves 53,122 California listings and 4,282 open-house events out of MySQL
 through an Express API, and presents them in a React single-page app with
 filtering, sorting, pagination, photo galleries, maps and open-house schedules.
 
-The feed is real, which is the interesting part: listings arrive with missing
-addresses, empty photo strings that `JSON.parse` throws on, coordinates parked
-at 0,0, and open-house dates in the year 4202. Handling that data honestly —
-rather than assuming it is clean — drove most of the design decisions below.
 
 ## Screenshots
 
