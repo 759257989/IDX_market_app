@@ -19,7 +19,7 @@ service-account*.json
 
 # --- Dependencies and build output -------------------------------------------
 node_modules/
-/coverage
+coverage/
 build/
 dist/
 
